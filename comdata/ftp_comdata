@@ -1,0 +1,97 @@
+#!/bin/ksh
+#
+# Author: Shawn Edstrom
+#         2/1/2011
+#
+#        ftp_comdata
+#
+#
+#
+echo " "
+echo "*** ftp_comdata has started up ***"
+echo " "
+date
+echo " "
+
+# read  Config file
+if [ ! -f /pti/pt.profile/pt-shell/ftp_comdata.conf ]; then
+   print "\n\n\t the ftp_comdata.conf file was not found\n"
+   exit
+else
+. /pti/pt.profile/pt-shell/ftp_comdata.conf
+fi
+
+if [ ! -d ${COM_DIR} ]; then
+   echo "${COM_DIR} Is an Invalid path "
+   exit 1
+fi
+
+# 
+# if there is a file to FTP to Comdata open the connection
+# and then move the file to the archive dir
+#
+if [ -f ${COM_DATA_PUT} ]; then
+  ls -al $COM_DATA_PUT
+  echo "sending: $COM_DATA_PUT"
+  echo " "
+  /usr/bin/lftp  << EON 
+  set ftp:ssl-auth ssl
+  set ftp:ssl-force no
+   open -u $FTP_ID,$FTP_PWD -p $FTP_PORT $FTP_HOST
+   mput $COM_DATA_PUT
+   quit
+EON
+  if [ "$?" -ne "0" ]; then
+    print "Sorry, unable to connect to Comdata to send the 16 file"
+    /bin/mail $EMAIL_ID1,$EMAIL_ID2,$EMAIL_ID3 -s "Unable to connect to Comdata" << EOX 
+     The connection to Comdata was Unsuccessful and the 16 file was 
+     not sent.
+     .
+EOX
+    exit 1
+  fi
+
+  mv  ${COM_DATA_PUT}  ${COM_ARCHIVE}
+fi
+
+#
+# Get file from Comdata
+#
+  /usr/bin/lftp  <<EOR
+  set ftp:ssl-auth ssl
+  set ftp:ssl-force no
+   open -u $FTP_ID,$FTP_PWD -p $FTP_PORT $FTP_HOST
+   lcd ${COM_DIR}
+   mget $COM_DATA_GET
+   quit
+EOR
+    if [ "$?" -ne "0" ]; then
+    echo "Sorry, unable to connect to Comdata in order to get the 17 file"
+    /bin/mail $EMAIL_ID1,$EMAIL_ID2,$EMAIL_ID3 -s "Unable to connect to Comdata" << EOX
+     The connection to Comdata was Unsuccessful and the 17 file was
+     not received.
+     .
+EOX
+    exit 1
+  fi
+
+
+#
+# Set the permissions, and notify 
+# via email that the file is ready
+#
+if [ -f ${COM_DIR}/${COM_DATA_GET} ]; then
+ echo " "
+ echo "moving ${COM_DATA_GET} to inbasket file"
+ echo " "
+ mv $COM_DIR/$COM_DATA_GET $COM_INBASKET/
+ chmod 666 /$COM_INBASKET/$COM_DATA_GET 
+ chown cmismn $COM_INBASKET/$COM_DATA_GET 
+ /bin/mail $EMAIL_ID1,$EMAIL_ID2 -s "$EMAIL_SUBJECT" << EOS
+ The Comdata response file has been successfully uploaded to your server. 
+ Run TR DP RESPONSE to complete this process
+ .
+
+EOS
+fi
+echo " all done"

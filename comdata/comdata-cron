@@ -1,0 +1,2 @@
+# Run ftp-comdata every 15 minutes from Monday to Friday
+*/15 * * * 1-5 PT_PROFILE=/pti/pt.profile PT_REV=6.1.18 PT_PATH=/pti/pt.6.1.18 PT_PROFILE=/pti/pt.profile PT_SITE_PATH=/pti/pt.site.6.1.18 /pti/pt.profile/pt-shell/ftp_comdata >> /tmp/ftp_comdata.log 2>&1
