@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2005/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <DataSources>
+    <DataSource Name="DataSource1">
+      <DataSourceReference>DataSource1</DataSourceReference>
+      <rd:DataSourceID>e82c83f3-eb6a-456f-985f-512f710a6bc8</rd:DataSourceID>
+    </DataSource>
+  </DataSources>
+  <BottomMargin>1in</BottomMargin>
+  <RightMargin>1in</RightMargin>
+  <rd:DrawGrid>true</rd:DrawGrid>
+  <InteractiveWidth>8.5in</InteractiveWidth>
+  <rd:SnapToGrid>true</rd:SnapToGrid>
+  <Body>
+    <Height>2in</Height>
+    <Style>
+      <BackgroundColor>Gainsboro</BackgroundColor>
+    </Style>
+  </Body>
+  <PageHeader>
+    <Height>0.25in</Height>
+    <PrintOnLastPage>true</PrintOnLastPage>
+    <PrintOnFirstPage>true</PrintOnFirstPage>
+  </PageHeader>
+  <rd:ReportID>7b5a548a-e6cc-47f0-a67c-c5b4fe248675</rd:ReportID>
+  <LeftMargin>1in</LeftMargin>
+  <DataSets>
+    <DataSet Name="SOCbyPM">
+      <Query>
+        <rd:UseGenericDesigner>true</rd:UseGenericDesigner>
+        <CommandText>SELECT     soc_journal.*, pm_clk_01, pm_clk_02
+FROM         soc_journal JOIN
+                      job_info_jc ON soc_journal.job = job_info_jc.job
+WHERE     soc_journal.current = 'X' AND soc_journal.report_date = '20110930' order by pm_clk_01</CommandText>
+        <DataSourceName>DataSource1</DataSourceName>
+      </Query>
+      <Fields>
+        <Field Name="coid">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>coid</DataField>
+        </Field>
+        <Field Name="job">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>job</DataField>
+        </Field>
+        <Field Name="phase">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>phase</DataField>
+        </Field>
+        <Field Name="report_date">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>report_date</DataField>
+        </Field>
+        <Field Name="run_date">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>run_date</DataField>
+        </Field>
+        <Field Name="run_time">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>run_time</DataField>
+        </Field>
+        <Field Name="current">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>current</DataField>
+        </Field>
+        <Field Name="additional_estimated_cost">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>additional_estimated_cost</DataField>
+        </Field>
+        <Field Name="batch_number">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>batch_number</DataField>
+        </Field>
+        <Field Name="billings_exceeding_earnings">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>billings_exceeding_earnings</DataField>
+        </Field>
+        <Field Name="billings_to_date">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>billings_to_date</DataField>
+        </Field>
+        <Field Name="category_arrangement">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>category_arrangement</DataField>
+        </Field>
+        <Field Name="change_orders_cost">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>change_orders_cost</DataField>
+        </Field>
+        <Field Name="change_orders_revenue">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>change_orders_revenue</DataField>
+        </Field>
+        <Field Name="contract_amount">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>contract_amount</DataField>
+        </Field>
+        <Field Name="cost_plus_gross_profit">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>cost_plus_gross_profit</DataField>
+        </Field>
+        <Field Name="cost_to_date">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>cost_to_date</DataField>
+        </Field>
+        <Field Name="earnings_exceeding_billings">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>earnings_exceeding_billings</DataField>
+        </Field>
+        <Field Name="estimated_cost_to_complete">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>estimated_cost_to_complete</DataField>
+        </Field>
+        <Field Name="estimated_gross_profit">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>estimated_gross_profit</DataField>
+        </Field>
+        <Field Name="gross_profit_current_year">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>gross_profit_current_year</DataField>
+        </Field>
+        <Field Name="gross_profit_prior_years">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>gross_profit_prior_years</DataField>
+        </Field>
+        <Field Name="original_estimate_cost">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>original_estimate_cost</DataField>
+        </Field>
+        <Field Name="original_estimate_revenue">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>original_estimate_revenue</DataField>
+        </Field>
+        <Field Name="pending_change_orders_cost">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>pending_change_orders_cost</DataField>
+        </Field>
+        <Field Name="pending_change_orders_revenue">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>pending_change_orders_revenue</DataField>
+        </Field>
+        <Field Name="percent_complete">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>percent_complete</DataField>
+        </Field>
+        <Field Name="revisions_cost">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>revisions_cost</DataField>
+        </Field>
+        <Field Name="revisions_revenue">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>revisions_revenue</DataField>
+        </Field>
+        <Field Name="total_estimated_job_cost">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>total_estimated_job_cost</DataField>
+        </Field>
+        <Field Name="pm_clk_01">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>pm_clk_01</DataField>
+        </Field>
+        <Field Name="pm_clk_02">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>pm_clk_02</DataField>
+        </Field>
+      </Fields>
+    </DataSet>
+  </DataSets>
+  <Code>Summary Of Contracts</Code>
+  <Width>11.375in</Width>
+  <InteractiveHeight>11in</InteractiveHeight>
+  <Language>en-US</Language>
+  <TopMargin>1in</TopMargin>
+</Report>

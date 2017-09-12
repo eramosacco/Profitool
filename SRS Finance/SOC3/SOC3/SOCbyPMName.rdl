@@ -1,0 +1,489 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2005/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <DataSources>
+    <DataSource Name="DataSource11">
+      <DataSourceReference>DataSource1</DataSourceReference>
+      <rd:DataSourceID>bdf3f771-d338-49f4-ac9c-738ced92b32d</rd:DataSourceID>
+    </DataSource>
+  </DataSources>
+  <BottomMargin>1in</BottomMargin>
+  <RightMargin>1in</RightMargin>
+  <rd:DrawGrid>true</rd:DrawGrid>
+  <InteractiveWidth>8.5in</InteractiveWidth>
+  <rd:SnapToGrid>true</rd:SnapToGrid>
+  <Body>
+    <Height>2in</Height>
+  </Body>
+  <rd:ReportID>d435aa64-f665-476e-b223-22dab4427a9f</rd:ReportID>
+  <LeftMargin>1in</LeftMargin>
+  <DataSets>
+    <DataSet Name="DataSet1">
+      <Query>
+        <rd:UseGenericDesigner>true</rd:UseGenericDesigner>
+        <CommandText>SELECT     j.name, j.pm_clk_01, j.pm_name_01, j.pm_clk_02, s.coid,s.*,j.*
+FROM         soc_journal s, job_info_jc j
+WHERE     s.job = j.job AND (s. currentx = 'X' AND  s.coid = 'ACCO')
+ORDER BY j.pm_name_01</CommandText>
+        <DataSourceName>DataSource11</DataSourceName>
+      </Query>
+      <Fields>
+        <Field Name="name">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>name</DataField>
+        </Field>
+        <Field Name="pm_clk_01">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>pm_clk_01</DataField>
+        </Field>
+        <Field Name="pm_name_01">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>pm_name_01</DataField>
+        </Field>
+        <Field Name="pm_clk_02">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>pm_clk_02</DataField>
+        </Field>
+        <Field Name="coid">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>coid</DataField>
+        </Field>
+        <Field Name="coid_1">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>coid</DataField>
+        </Field>
+        <Field Name="job">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>job</DataField>
+        </Field>
+        <Field Name="phase">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>phase</DataField>
+        </Field>
+        <Field Name="report_date">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>report_date</DataField>
+        </Field>
+        <Field Name="run_date">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>run_date</DataField>
+        </Field>
+        <Field Name="run_time">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>run_time</DataField>
+        </Field>
+        <Field Name="currentx">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>currentx</DataField>
+        </Field>
+        <Field Name="additional_estimated_cost">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>additional_estimated_cost</DataField>
+        </Field>
+        <Field Name="batch_number">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>batch_number</DataField>
+        </Field>
+        <Field Name="billings_exceeding_earnings">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>billings_exceeding_earnings</DataField>
+        </Field>
+        <Field Name="billings_to_date">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>billings_to_date</DataField>
+        </Field>
+        <Field Name="category_arrangement">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>category_arrangement</DataField>
+        </Field>
+        <Field Name="change_orders_cost">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>change_orders_cost</DataField>
+        </Field>
+        <Field Name="change_orders_revenue">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>change_orders_revenue</DataField>
+        </Field>
+        <Field Name="contract_amount">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>contract_amount</DataField>
+        </Field>
+        <Field Name="cost_plus_gross_profit">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>cost_plus_gross_profit</DataField>
+        </Field>
+        <Field Name="cost_to_date">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>cost_to_date</DataField>
+        </Field>
+        <Field Name="earnings_exceeding_billings">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>earnings_exceeding_billings</DataField>
+        </Field>
+        <Field Name="estimated_cost_to_complete">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>estimated_cost_to_complete</DataField>
+        </Field>
+        <Field Name="estimated_gross_profit">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>estimated_gross_profit</DataField>
+        </Field>
+        <Field Name="gross_profit_current_year">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>gross_profit_current_year</DataField>
+        </Field>
+        <Field Name="gross_profit_prior_years">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>gross_profit_prior_years</DataField>
+        </Field>
+        <Field Name="original_estimate_cost">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>original_estimate_cost</DataField>
+        </Field>
+        <Field Name="original_estimate_revenue">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>original_estimate_revenue</DataField>
+        </Field>
+        <Field Name="pending_change_orders_cost">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>pending_change_orders_cost</DataField>
+        </Field>
+        <Field Name="pending_change_orders_revenue">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>pending_change_orders_revenue</DataField>
+        </Field>
+        <Field Name="percent_complete">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>percent_complete</DataField>
+        </Field>
+        <Field Name="revisions_cost">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>revisions_cost</DataField>
+        </Field>
+        <Field Name="revisions_revenue">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>revisions_revenue</DataField>
+        </Field>
+        <Field Name="total_estimated_job_cost">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>total_estimated_job_cost</DataField>
+        </Field>
+        <Field Name="job_1">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>job</DataField>
+        </Field>
+        <Field Name="phase_1">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>phase</DataField>
+        </Field>
+        <Field Name="name_1">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>name</DataField>
+        </Field>
+        <Field Name="department">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>department</DataField>
+        </Field>
+        <Field Name="description">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>description</DataField>
+        </Field>
+        <Field Name="job_type">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>job_type</DataField>
+        </Field>
+        <Field Name="active_job">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>active_job</DataField>
+        </Field>
+        <Field Name="company_id">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>company_id</DataField>
+        </Field>
+        <Field Name="customer_number">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>customer_number</DataField>
+        </Field>
+        <Field Name="bill_to_name">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>bill_to_name</DataField>
+        </Field>
+        <Field Name="bill_to_address_1">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>bill_to_address_1</DataField>
+        </Field>
+        <Field Name="bill_to_address_2">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>bill_to_address_2</DataField>
+        </Field>
+        <Field Name="bill_to_city">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>bill_to_city</DataField>
+        </Field>
+        <Field Name="bill_to_state">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>bill_to_state</DataField>
+        </Field>
+        <Field Name="bill_to_zip_1">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>bill_to_zip_1</DataField>
+        </Field>
+        <Field Name="bill_to_zip_2">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>bill_to_zip_2</DataField>
+        </Field>
+        <Field Name="billing_day">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>billing_day</DataField>
+        </Field>
+        <Field Name="date_contract">
+          <rd:TypeName>System.DateTime</rd:TypeName>
+          <DataField>date_contract</DataField>
+        </Field>
+        <Field Name="date_job_closed">
+          <rd:TypeName>System.DateTime</rd:TypeName>
+          <DataField>date_job_closed</DataField>
+        </Field>
+        <Field Name="job_to_date_journal">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>job_to_date_journal</DataField>
+        </Field>
+        <Field Name="job_address_1">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>job_address_1</DataField>
+        </Field>
+        <Field Name="job_address_2">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>job_address_2</DataField>
+        </Field>
+        <Field Name="job_city">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>job_city</DataField>
+        </Field>
+        <Field Name="job_state">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>job_state</DataField>
+        </Field>
+        <Field Name="job_zip_1">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>job_zip_1</DataField>
+        </Field>
+        <Field Name="job_zip_2">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>job_zip_2</DataField>
+        </Field>
+        <Field Name="job_list">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>job_list</DataField>
+        </Field>
+        <Field Name="no_summary_of_contracts">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>no_summary_of_contracts</DataField>
+        </Field>
+        <Field Name="pm_clk_01_1">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>pm_clk_01</DataField>
+        </Field>
+        <Field Name="pm_clk_02_1">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>pm_clk_02</DataField>
+        </Field>
+        <Field Name="pm_clk_03">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>pm_clk_03</DataField>
+        </Field>
+        <Field Name="pm_clk_04">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>pm_clk_04</DataField>
+        </Field>
+        <Field Name="pm_dept_01">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>pm_dept_01</DataField>
+        </Field>
+        <Field Name="pm_dept_02">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>pm_dept_02</DataField>
+        </Field>
+        <Field Name="pm_dept_03">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>pm_dept_03</DataField>
+        </Field>
+        <Field Name="pm_dept_04">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>pm_dept_04</DataField>
+        </Field>
+        <Field Name="pm_name_01_1">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>pm_name_01</DataField>
+        </Field>
+        <Field Name="pm_name_02">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>pm_name_02</DataField>
+        </Field>
+        <Field Name="pm_name_03">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>pm_name_03</DataField>
+        </Field>
+        <Field Name="pm_name_04">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>pm_name_04</DataField>
+        </Field>
+        <Field Name="pm_pct_01">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>pm_pct_01</DataField>
+        </Field>
+        <Field Name="pm_pct_02">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>pm_pct_02</DataField>
+        </Field>
+        <Field Name="pm_pct_03">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>pm_pct_03</DataField>
+        </Field>
+        <Field Name="pm_pct_04">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>pm_pct_04</DataField>
+        </Field>
+        <Field Name="pm_pct_total">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>pm_pct_total</DataField>
+        </Field>
+        <Field Name="post_cost_data">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>post_cost_data</DataField>
+        </Field>
+        <Field Name="sal">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>sal</DataField>
+        </Field>
+        <Field Name="sales_tax_pct">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>sales_tax_pct</DataField>
+        </Field>
+        <Field Name="standard_activity_list">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>standard_activity_list</DataField>
+        </Field>
+        <Field Name="validation">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>validation</DataField>
+        </Field>
+        <Field Name="validation_required">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>validation_required</DataField>
+        </Field>
+        <Field Name="zip_area">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>zip_area</DataField>
+        </Field>
+        <Field Name="pm_clk_07">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>pm_clk_07</DataField>
+        </Field>
+        <Field Name="pm_clk_08">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>pm_clk_08</DataField>
+        </Field>
+        <Field Name="pm_clk_09">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>pm_clk_09</DataField>
+        </Field>
+        <Field Name="pm_clk_10">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>pm_clk_10</DataField>
+        </Field>
+        <Field Name="pm_clk_11">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>pm_clk_11</DataField>
+        </Field>
+        <Field Name="pm_clk_12">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>pm_clk_12</DataField>
+        </Field>
+        <Field Name="pm_name_07">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>pm_name_07</DataField>
+        </Field>
+        <Field Name="pm_name_08">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>pm_name_08</DataField>
+        </Field>
+        <Field Name="pm_name_09">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>pm_name_09</DataField>
+        </Field>
+        <Field Name="pm_name_10">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>pm_name_10</DataField>
+        </Field>
+        <Field Name="pm_name_11">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>pm_name_11</DataField>
+        </Field>
+        <Field Name="pm_name_12">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>pm_name_12</DataField>
+        </Field>
+        <Field Name="pm_clk_05">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>pm_clk_05</DataField>
+        </Field>
+        <Field Name="pm_name_05">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>pm_name_05</DataField>
+        </Field>
+        <Field Name="pm_clk_06">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>pm_clk_06</DataField>
+        </Field>
+        <Field Name="pm_name_06">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>pm_name_06</DataField>
+        </Field>
+        <Field Name="retainage_pct">
+          <rd:TypeName>System.Double</rd:TypeName>
+          <DataField>retainage_pct</DataField>
+        </Field>
+        <Field Name="master_job">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>master_job</DataField>
+        </Field>
+        <Field Name="master_phase">
+          <rd:TypeName>System.Int64</rd:TypeName>
+          <DataField>master_phase</DataField>
+        </Field>
+        <Field Name="preliminary_notice">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>preliminary_notice</DataField>
+        </Field>
+        <Field Name="date_sent">
+          <rd:TypeName>System.DateTime</rd:TypeName>
+          <DataField>date_sent</DataField>
+        </Field>
+        <Field Name="reason_pre_notice_not_filed">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>reason_pre_notice_not_filed</DataField>
+        </Field>
+        <Field Name="pm1_incent">
+          <rd:TypeName>System.Int32</rd:TypeName>
+          <DataField>pm1_incent</DataField>
+        </Field>
+        <Field Name="pm2_incent">
+          <rd:TypeName>System.Int32</rd:TypeName>
+          <DataField>pm2_incent</DataField>
+        </Field>
+        <Field Name="pm3_incent">
+          <rd:TypeName>System.Int32</rd:TypeName>
+          <DataField>pm3_incent</DataField>
+        </Field>
+        <Field Name="pm4_incent">
+          <rd:TypeName>System.Int32</rd:TypeName>
+          <DataField>pm4_incent</DataField>
+        </Field>
+      </Fields>
+    </DataSet>
+  </DataSets>
+  <Width>6.5in</Width>
+  <InteractiveHeight>11in</InteractiveHeight>
+  <Language>en-US</Language>
+  <TopMargin>1in</TopMargin>
+</Report>
