@@ -1,0 +1,882 @@
+#define LPROTOTYPE
+#define PRIMELIB
+#include "libutil.h"
+#include "libfio.h"
+#include "libscr.h"
+#include "fortran.h"
+#include "cmis_com.h"
+#include "parm_k.h"
+/*
+-----------------------------------------------------------------------
+     UTIL.VCOM$C.FTN
+
+     PAH  01/07/88
+
+ VCOM$C ( IMODE,NCOID,ITYPE,VCNO,RJOB,PHASE,NACTIV,NCOMIT,AMOUNT,IRCBAC )
+
+     ROUTINE TO VALIDATE THAT THERE IS A SUFFICIENT UNBILLED BALANCE ON
+        A CONTRACT, SUBCONTRACT OR PURCHASE ORDER TO COVER THE AMOUNT OF
+        A BILLING.
+
+  IMODE   - 'B ' = Over Billings 'P ' = Over Payments
+  IMODE   - 'BW' = Over Billings - Override to a warning
+                   This is used when the user has paid an invoice
+                   with a manual check and entered the check number
+                   on the Invoice Input screen.  We must allow the user
+                   to enter this invoice and Payment.
+  NCOID   - COMPANY I.D.
+  ITYPE   - CODE FOR TYPE OF COMMITMENT: 'C ', 'SC', 'PO' or 'LE'
+  VCNO    - VENDOR OR CLIENT NUMBER OF CONTRACTOR
+  RJOB    - JOB FOR WHICH COMMITMENT IS TO EXIST
+  PHASE   - PHASE FOR WHICH COMMITMENT IS TO EXIST
+  NACTIV  - ACTIVITY FOR WHICH COMMITMENT IS TO EXIST
+  NCOMIT  - CONTRACT#, SUBCONTRACT# OR PURCHASE ORDER# TO WHICH BILLING IS
+            TO BE APPLIED
+  AMOUNT  - AMOUNT OF BILLING
+  IRCBAC  - RETURN CODE: 0 = COMMITMENT EXISTS WITH SUFFICIENT UNBILLED
+                             BALANCE TO COVER THE AMOUNT OF BILLING OR
+                             COMMITMENT VALIDATION IS NOT NEEDED
+                         1 = WARNING MESSAGE WAS OUTPUT
+                             COMMITMENT EXISTS BUT DOES NOT HAVE SUFFICIENT
+                             UNBILLED BALANCE TO COVER THE AMOUNT OF BILLING
+                         2 = REQUIRED MESSAGE WAS OUTPUT
+                             COMMITMENT EXISTS BUT DOES NOT HAVE SUFFICIENT
+                             UNBILLED BALANCE TO COVER THE AMOUNT OF BILLING
+                         6 = WARNING MESSAGE WAS OUTPUT
+                             COMMITMENT DOES NOT EXISTS
+                         7 = REFERENCED COMITMENT DOES NOT EXIST AND
+                             A VALID COMMITMENT IS REQUIRED
+
+*/
+
+void vcomSc(short *imode,short *ncoid,short *itype,double *vcno,double *rjob,double *phase,short *nactiv,short *ncomit,
+    double *amount,short *ircbac)
+{
+static double T1;
+static double T4;
+static short K120 = 120;
+static short K13 = 13;
+static short K46 = 46;
+static short K9 = 9;
+static short K0 = 0;
+static short K2 = 2;
+static short K10 = 10;
+static short K9999 = 9999;
+static short K25 = 25;
+static short K8 = 8;
+static short K18 = 18;
+static short K7 = 7;
+static short K22 = 22;
+static short K1 = 1;
+static short K4 = 4;
+static short K5 = 5;
+static short K17 = 17;
+static short K30 = 30;
+static short K3 = 3;
+static double R3 = 0.0e0;
+static short K80 = 80;
+static short K16 = 16;
+static short K40 = 40;
+static short K34 = 34;
+static short K6 = 6;
+static short K35 = 35;
+static short K70 = 70;
+static double R2 = 0.e0;
+static short K15 = 15;
+static short K61 = 61;
+static short K36 = 36;
+static short K33 = 33;
+static short K44 = 44;
+
+static double zero = 0.;
+static short nswovr = 0;
+static short nswmva = -1;
+static short nlenth[10] = {
+    9,7,7,9,5,11,9,9,14,14
+};
+
+static double data[10];
+static double amt[1];
+
+static short key[60];
+static short key1[60];
+static short keysv[60];
+static short keysv1[60];
+static short keyubl[60];
+static short marray[14];
+static short ccoid[2];
+static short mess[40];
+static short ifield[10][7];
+static short kactiv[5];
+
+static unsigned short lfound;
+static unsigned short lsatfy;
+static unsigned short mvpo;
+static unsigned short blktpo;
+static unsigned short mvpass;
+static short nrecfg;
+static short nflag;
+static short irc;
+static double amtovr;
+static double vcnol;
+static short idummy;
+static short iclr;
+static short mflag;
+static double fublsv;
+static short icntyp;
+static double fndorg;
+static double fndchg;
+static double fndbld;
+static double fndubl;
+static double vend;
+static short ircv;
+static short iret;
+static short iwhich;
+static short iloop;
+static double unpaid;
+static double unbild;
+static double unbilr;
+static short lmess;
+static short ircx;
+static int FIRST = 1;
+static int ftnsiz[] = {1,1,70};
+static namelist DATAVAR[] = {
+"ifield",ifield,1,ftnsiz
+};
+static char *DATAVAL[] = {
+"$DATAVAR",
+"ifield='$O','RI','GI','NA','L ','  ','','$C','HA','NG','E ','  ','  ','','$B','IL','LE','D ','  ','  ','',",
+"'$R','ET','AI','NE','D ','  ','','$P','AI','D ','  ','  ','  ','','$V','AT',' B','IL','LE','D ','',",
+"'$V','AT',' P','AI','D ','  ','','$R','EC','EI','VE','D ','  ','','$F','UT','UR','E ','US','E ','#2',",
+"'$F','UT','UR','E ','US','E ','#3',",
+"$END"
+};
+
+static char* F975[] = {
+    "(f8.0)"
+};
+static char* F2001[] = {
+    "(2a2,a2,b'ZZZZZZ',b'ZZZZZZ',b'ZZ',5a2,4a2,82x)"
+};
+static char* F2510[] = {
+    "(2a2,b'ZZZZZZ',b'ZZ',108x)"
+};
+static char* F2700[] = {
+    "(f6.0)"
+};
+
+    if(FIRST) {
+        FIRST=0;
+        fiointu((char*)DATAVAL,0,2);
+        fiornl(DATAVAR,1,NULL);
+    }
+
+    if(*imode == *(short*)fifstrgv("B ",2)) goto S500;
+    if(*imode == *(short*)fifstrgv("BW",2)) goto S500;
+    if(*imode == *(short*)fifstrgv("P ",2)) goto S500;
+    if(*imode == *(short*)fifstrgv("PW",2)) goto S500;
+
+    errSp("Bad value for IMODE in VCOM$C:~",&K0,imode,&K2);
+
+    ferrSc(&K10,&K9999,"Possible custom VCOM$C call in error.  Contact support.~",&K0);
+
+S500:
+    *ircbac = 0;
+
+    nrecfg = *(short*)fifstrgv("N ",2);
+
+    /*
+    -----Call routine to read GENL INFO and then Job Specific parameters
+         for commitment required or commitment warning switches.
+
+    */
+    cvalSc(itype,rjob,phase,&nflag,&irc);
+
+    /*
+         Perform standard validation if the custom routine returns IRC = 9
+
+    */
+    cscval(itype,rjob,phase,nactiv,ncomit,amount,&irc);
+    if(irc == 9) goto S525;                  /*  Perform standard validation */
+    *ircbac = irc;
+    goto S9000;
+
+S525:
+    if(nswovr != 0) goto S1000;
+
+    /*
+    -----Check for Overbill Margin in GENERAL INFO
+
+    */
+    nswovr = 1;
+    amtovr = .005e0;                         /* Default half penny */
+    gnliSc("READ","ALLOWABLE OVERBILL AMOUNT",&K25,amt,&K8,&irc);
+    if(irc != 0) goto S1000;
+    if(READ(INTERNAL,amt,8,IOSTAT,NULL,1,FMT,F975,1,REAL8,&amtovr,0)) goto S990;
+    if(amtovr <= 0.e0) amtovr = .005e0;
+    goto S1000;
+
+S990:
+    ferrSc(&K0,&K0,"Error decoding ALLOWABLE OVERBILL AMOUNT (VCOM$C)~",&K0);
+
+S1000:
+
+    /*
+         Determine whether Multiple Vendors are Allowed or not
+
+    */
+    mvpo = FALSE;                            /*  Not a Multiple Vendor PO */
+    blktpo = FALSE;                          /*  Not a Blanket PO */
+    gnliSc("READ","MULTIPLE VENDOR PO",&K18,mess,&K7,&irc);
+    if(irc != 0) goto S1100;
+
+    mvpo = TRUE;
+
+    upcase(mess,&K7,&irc);
+    if(icompr(mess,"BLANKET ",&K7) == 0) blktpo = TRUE;
+
+S1100:
+    vcnol = *vcno;
+
+    idummy = *(short*)fifstrgv("  ",2);
+    if(*itype != *(short*)fifstrgv("PO",2)) goto S1500;/* purchase order */
+
+
+    /*
+         Set the RECEIVING VALIDATION flag if indicated for this job
+
+    */
+    jinfSc(rjob,phase,"JC  ","P RECEIVING VALIDATION",&K22,&idummy,&K1,&K0,&K0,&irc);
+    if(irc == 0 && icompr(&idummy,"Y ",&K1) == 0) nrecfg = *(short*)fifstrgv("Y ",2);
+
+S1500:
+    lsatfy = FALSE;
+    lfound = FALSE;
+    if(nflag == 0) goto S9000;
+    if(nflag == 1 && icompr(ncomit,"-       ",&K8) == 0) goto S9000;
+
+    /*
+         ENCODE KEY OF RECORD TO BE FOUND IN COMMITMENT$MASTER
+            (DATE OF ZERO IS TO GET TO A MASTER RECORD FOR THE COMMITMENT)
+
+    */
+    jinfSc(rjob,phase,"JC  ","COMPANY ID",&K10,ccoid,&K4,&K0,&K0,&irc);
+
+    mvpass = FALSE;                          /*  Not multiple vendor pass */
+
+    mvwrd(nactiv,kactiv,&K5);
+    if(mvpo) fill(kactiv,&K5,"  ");          /*  Multiple Vendor PO cannot go down to the activity */
+    WRITE(INTERNAL,key,120,FMT,F2001,1,DO,2,INT2,ccoid,INT2,*itype,REAL8,vcnol,REAL8,*rjob,REAL8,*phase,DO,5,INT2,
+      kactiv,DO,4,INT2,ncomit,0);
+
+    for(iclr=0; iclr==0 || iclr<10; iclr++)
+    {                                        /* CLEAR ALL ELEMENTS... */
+        data[iclr] = 0.e0;                   /* ...OF EXPANDED C$M... */
+    }
+
+    ioSf("FIND","COMMITMENT$MASTER",&K17,"    ",key,&K0,&K0,&K0,ircbac);/* ...BUFFER */
+
+    if(*ircbac == 0) goto S3000;
+    if(*ircbac != 7) ferrSc(&K30,ircbac,"VCOM$C: Trying to find a commitment for validation~",&K0);
+
+    if(!mvpo) goto S8000;
+    /*
+    xxx  IF (       MVPO ) GOTO 2500
+
+    */
+S2500:
+
+    if(*itype != *(short*)fifstrgv("PO",2)) goto S8000;/* transfer purchase orders only */
+    mvpass = TRUE;                           /*  This is the multiple vendor pass */
+
+    /*
+         couldn't find a summary rec with vendor, look for one with any vendor
+
+    */
+    mvbyt(key,keysv,&K120);
+    WRITE(INTERNAL,key1,120,FMT,F2510,1,DO,2,INT2,ccoid,REAL8,*rjob,REAL8,*phase,0);
+    mvbyt(key1,keysv1,&K120);
+    mflag = FLSNXT+FLSUKY;
+    fublsv = 0.e0;
+
+S2600:
+
+    ioSf("FIND","COMMITMENT$MASTER",&K17,"    ",key1,&K0,&mflag,&K1,&irc);
+
+    if(icompr(key1,keysv1,&K22) != 0) irc = 7;
+    if(irc != 0 && !lfound) goto S8000;
+    if(irc != 0 && lfound) goto S7400;
+
+    gdatSf("GET ","COMMITMENT$MASTER",&K17,"    ","CONTRACT TYPE",&K13,&icntyp,&K2,&K0,&K0,&irc);
+
+    if(icntyp != *(short*)fifstrgv("PO",2)) goto S2600;/*  Wrong type */
+    gpkySf("GET ","COMMITMENT$MASTER",&K17,"    ",key,&K0,&irc);
+
+    if(icompr(&key[6],&keysv[6],&K46) != 0) goto S2600;
+
+    /*
+         determine unbilled commitment under this vendor
+
+    */
+    dataSf("GET ","COMMITMENT$MASTER",&K17,"    ","$ORIGINAL",&K9,&fndorg,&K0,&K0,&K0,&irc);
+    dataSf("GET ","COMMITMENT$MASTER",&K17,"    ","$CHANGE ",&K7,&fndchg,&K0,&K0,&K0,&irc);
+    dataSf("GET ","COMMITMENT$MASTER",&K17,"    ","$BILLED ",&K7,&fndbld,&K0,&K0,&K0,&irc);
+    fndubl = fndorg+fndchg-fndbld;
+
+    /*
+         require unbilled commitment greater than zero to be considered
+            a valid available unbilled commitment
+            (this is necessary to handle credit amounts)
+
+    */
+    if(fndubl < 0.01e0) lsatfy = TRUE;
+    if(fndubl < 0.01e0) goto S2600;
+
+    lfound = TRUE;                           /* something was found under alternate vendor */
+
+    /*
+         make sure there is sufficent commitment to transfer
+
+    */
+    if(fndubl >= *amount) goto S2650;
+    if(fndubl < fublsv) goto S2600;
+
+    fublsv = fndubl;
+    mvbyt(key,keyubl,&K120);
+
+    goto S2600;
+
+S2650:
+
+    /*
+         warn user of change in vendor
+
+    */
+    fill(mess,&K40,"  ");
+    mvbyt(itype,mess,&K2);
+    mvbyt(" is currently found under vendor  ",&mess[1],&K34);
+    mvbyt(&key[3],&mess[18],&K6);
+    READ(INTERNAL,&key[3],6,FMT,F2700,1,REAL8,&vend,0);
+    vinfSc(&vend,"    ","NAME",&K4,&mess[22],&K35,&K0,&K0,&ircv);
+
+    iret = 1;
+    if(xc_cSenvr == 1) retuSs(mess,&K70,"r!",&K2,&iret);
+    if(iret != 1) goto S8100;
+
+    if(nflag == 0) goto S9000;
+
+    *ircbac = irc;
+
+    /*
+         COMPUTE UNBILLED BALANCE FOR THIS COMMITMENT if IMODE is 'B '
+            UNBILLED = ( CONTRACT+CHANGES ) - BILLED
+            UNBILLED = RECEIVED             - BILLED
+
+    */
+S3000:
+
+    /*
+            When NRECFG = 'Y ' we will use whichever calculation results in the
+            smallest value
+
+         COMPUTE UNPAID BALANCE FOR THIS COMMITMENT if IMODE is 'P '
+            UNPAID = ( CONTRACT+CHANGES ) - PAID
+
+    */
+    if(*amount < 0.e0) goto S9000;
+
+    iwhich = *(short*)fifstrgv("C ",2);      /* Check against the Ordered amount (COMMITMENT) */
+    for(iloop=0; iloop==0 || iloop<10; iloop++)
+    {
+        gdatSf("GET ","COMMITMENT$MASTER",&K17,"    ",&ifield[iloop][0],&nlenth[iloop],&data[iloop],&K0,&K0,&K0,&irc);
+    }
+
+    if(icompr(imode,"B ",&K1) == 0) goto S3100;/* Check for over billing */
+    /*
+    /* over billing
+
+         Check for over payment
+
+    */
+    unpaid = data[0]+data[1]-data[4];        /* ORDERED - PAID */
+    if(unpaid <= 0.e0) lsatfy = TRUE;
+
+    if(iameq((T1= unpaid-*amount+amtovr,&T1),&R2) >= 0) goto S9000;
+    goto S3500;                              /* It's an over payment */
+
+S3100:
+
+    unbild = data[0]+data[1]-data[2];        /* ORDERED - BILLED */
+    if(nrecfg == *(short*)fifstrgv("N ",2)) goto S3200;
+
+    unbilr = data[7]-data[2];                /* RECEIVED - BILLED */
+    if(unbild <= unbilr) goto S3200;
+
+    iwhich = *(short*)fifstrgv("R ",2);      /* Test against Received */
+    unbild = unbilr;
+
+S3200:
+
+    /*
+         no commitment amount available, try different vendor
+
+    */
+    if(mvpo && !mvpass && iameq(&unbild,&R3) == 0) goto S2500;
+
+    if(iameq((T4= unbild-*amount+amtovr,&T4),&R2) >= 0) goto S9000;
+    goto S3500;
+
+S3500:
+
+    fill(mess,&K40,"  ");
+
+    /*
+     ****** NOT SUFFICIENT UNBILLED BALANCE
+
+    */
+    if(*imode == *(short*)fifstrgv("BW",2)) nflag = 1;/* warning */
+    if(*imode == *(short*)fifstrgv("PW",2)) nflag = 1;/* warning */
+
+    if(nflag == 2) goto S7500;               /* COMMIT REQUIRED */
+    goto S7450;
+
+S7400:
+
+    /*
+         warn user of change in vendor
+
+    */
+    fill(mess,&K40,"  ");
+    mvbyt(itype,mess,&K2);
+    mvbyt(" is currently found under vendor  ",&mess[1],&K34);
+    mvbyt(&keyubl[3],&mess[18],&K6);
+    READ(INTERNAL,&keyubl[3],6,FMT,F2700,1,REAL8,&vend,0);
+    vinfSc(&vend,"    ","NAME",&K4,&mess[22],&K35,&K0,&K0,&ircv);
+
+    iret = 1;
+    if(xc_cSenvr == 1) retuSs(mess,&K70,"r!",&K2,&iret);
+    if(iret != 1) goto S8100;
+
+S7450:
+
+    if(nflag == 2) goto S7500;               /* COMMIT REQUIRED */
+
+    /*
+     --- COMMIT WARNING
+
+    */
+    fill(mess,&K40,"  ");
+    mvbyt("WARNING .... Amount Billed exceeds Commitment,                   RETURN or '^' ",mess,&K80);
+
+    if(iwhich == *(short*)fifstrgv("R ",2)) mvbyt(" Received amount",&mess[17],&K16);
+
+    *ircbac = 1;
+    goto S8900;
+
+S7500:
+
+    /*
+     --- COMMIT REQUIRED
+
+    */
+    fill(mess,&K40,"  ");
+    mvbyt("Amount Billed exceeds Commitment.",mess,&K33);
+
+    if(iwhich == *(short*)fifstrgv("R ",2)) mvbyt("Received amount",&mess[11],&K15);
+
+    *ircbac = 2;
+    goto S8900;
+
+S8000:
+
+    /*
+     ****** COMMITMENT IS NOT ON FILE
+
+    */
+    if(nflag == 2) goto S8500;
+    if(nflag == 0) goto S8950;
+
+    /*
+     --- COMMIT WARNING
+
+    */
+    fill(mess,&K40,"  ");
+    if(!lsatfy) mvbyt("WARNING .... Specified Commitment is not on file,                RETURN or '^' ",mess,&K80);
+
+    if(lsatfy) mvbyt("WARNING: Commitment is already fully billed. RETURN or '^' ",mess,&K61);
+
+    *ircbac = 6;
+    goto S8900;
+
+S8100:
+    goto S9000;
+
+S8500:
+
+    /*
+     --- COMMIT REQUIRED
+
+    */
+    if(icompr(ncomit,"-       ",&K8) == 0) goto S8700;
+
+    fill(mess,&K40,"  ");
+    if(!lsatfy) mvbyt("Specified Commitment is not on file.",mess,&K36);
+
+    if(lsatfy) mvbyt("WARNING: Commitment is already fully billed.",mess,&K44);
+
+    *ircbac = 7;
+    goto S8900;
+
+S8700:
+
+    fill(mess,&K40,"  ");
+    mvbyt("A '-       ' Commitment Can NOT be Entered with COMMIT REQUIRED Validation      ",mess,&K80);
+
+    *ircbac = 7;
+    goto S8900;
+
+S8900:
+
+    /*
+         If we are in ONLINE then output the message
+
+    */
+    if(xc_cSenvr != 1) goto S9000;
+
+    rmvbSc(mess,&K80,&K3,&lmess,&ircx);
+    errSs(mess,&lmess,&ircx);
+
+    goto S9000;
+
+S8950:
+
+    *ircbac = 0;
+
+S9000:
+
+    return;
+}
+/*
+
+-----------------------------------------------------------------------
+
+     GBT March 27, 1990 11:09:24    LEH-0044
+
+     Increased size of buffer used in reading COMMITMENT$MASTER file.
+
+-----------------------------------------------------------------------
+
+     DLP June 8, 1990 08:59:12    OLY-0011
+
+     Modified Warning messages to only be displayed if you are in ONLINE.
+
+-----------------------------------------------------------------------
+
+     DLP July 10, 1991 09:56:28    JEN-0104
+
+     Added General Info Parameter "ALLOWABLE OVERBILL AMOUNT" to allow each
+     site to specify the allowable amount that commitments can be overbilled.
+
+-----------------------------------------------------------------------
+
+     RDS July 22, 1991 14:46:16    NIC-0138
+
+     Resolve a bug that occurs because the Returned variable IRC was used
+     when looking up the 'ALLOWABLE OVERBILL AMOUNT' parameter.  It is a
+     good idea to use a name other than IRC for a returned variable to
+     avoid this type of problem.
+
+-----------------------------------------------------------------------
+
+     DLP July 24, 1992 10:07:56    JEN
+
+     Modified call to VCOM$C to include a new argument, IMODE.
+     IMODE can equal 'B ' or 'P '
+     B = test for billed amount exceeds commitment
+     P = test for Paid amount exceeds commitment
+
+-----------------------------------------------------------------------
+
+     DLP August 5, 1992 10:41:20    PRO-0000
+
+     Use the JOB number to look-up the jobs company id to use in
+     building the Commitment Master Key.
+
+-----------------------------------------------------------------------
+
+     DLP August 27, 1992 10:52:56    HBZ-0142
+
+     Modified to allow the calling program to pass IMODE as "BW"
+     "BW" is used when the user has entered a check number from the
+     TR INPUT invoice entry programs.  In this case we need to allow
+     the entry of this invoice and payment because it has been paid manualy.
+     The "W" forces this routine to only Warn the user.
+
+-----------------------------------------------------------------------
+
+     DLP August 31, 1992 14:15:44    PRO
+
+     Changed the calculation of the UNPAID amount to not subtract the
+     retained amount ( DATA(4) )
+
+-----------------------------------------------------------------------
+
+     RDS August 13, 1993 15:43:24    ACC-0093
+
+     Install new validation that is envoked by entering a "Y" into the
+     JOB$INFO "JC" field named "P RECEIVING VALIDATION".  The new validation
+     does the following:
+
+        For a Job that is doing 'P COMMITMENT VALIDATION" and
+        "P RECEIVING VALIDATION" the validation for a Billing amount will
+        check against the smallest of these to amounts
+
+        1.  AMOUNT ORDERED  - AMOUNT PREVIOUSLY BILLED
+        2.  AMOUNT RECEIVED - AMOUNT PREVIOUSLY BILLED
+
+-----------------------------------------------------------------------
+
+     RDS September 30, 1993 11:35:24    PRO
+
+     Add to blanks to a MVWRD parameter to correct a error display.
+
+-----------------------------------------------------------------------
+
+     GEL October 6, 1994 13:52:36    ADM-1250
+
+     Correct lookup of the 'x COMMIT REQUIRED' Configuration Parameter where
+     'x ' is 'C ', 'S ', or 'P '.
+     For 10 or more years REQUIRED has been spelled REQUIRD.  Look for both
+     the correct and incorrect spellings so that users who have had the
+     misspelled parameter in place for 10 years will not be affected.
+
+-----------------------------------------------------------------------
+
+     DLP December 13, 1994 11:52:40    HBZ-0330
+
+     Added a section of code to handle "L COMMITMENT VALIDATION"
+     for Leases
+
+-----------------------------------------------------------------------
+
+     DLP January 16, 1995 09:59:12    PRO
+
+     Removed the code which reads the COMMIT REQUIRED and COMMIT WARNING
+     switches from the routine and put it in a new subroutine CVAL$C
+
+-----------------------------------------------------------------------
+
+     DLP June 23, 1995 07:57:48    PRO
+
+     If the Amount of this billing is a credit then do not do commitment
+     validation.  Since this routine is to check on Over Billed status,
+     a credit does not overbill.  The negitive amounts did not pass validation
+     when the commited amount was negitive and the Amoutn was negitive.
+
+-----------------------------------------------------------------------
+
+     GEL May 02, 1997 14:39:07    ADM-1250
+
+     Eliminate free formatted DECODEs.  Such a DECODE on a blank buffer
+     could produce undesirable results.
+
+-----------------------------------------------------------------------
+
+     RDS October 10, 1997 14:47:24    LVI/TCT
+
+     Install code to support the new system wide configuration parameter:
+
+     "MULTIPLE VENDORS ALLOWED" with no data or "Y"
+
+     data of "N" is the same as no parameter and will no functional change.
+
+     With the parameter in place, COMMITMENT$MASTER will store both
+     summary keys using zero for a vendor number.  Commitment validation
+     (VCOM$C) will use zero for the vendor number when validating.
+
+-----------------------------------------------------------------------
+
+     RDS November 10, 1997 14:34:10    LVI/TCT
+
+     Change the CONFIG PARAM to be DFD wide from being SYSTEM wide.
+     It is now:
+
+     data: MULTIPLE VENDOR COMID: dfd                  (dfd is logical dfd)
+     key:  Y
+
+-----------------------------------------------------------------------
+
+     SCB February 26, 1998 12:35:28    DEV
+
+     Added capability to read either the new 58 byte key or old 52 byte key
+     COMMITMENT$MASTER file. If applicable, changed the date format in the C$M
+     key to handle an 8 char date field.
+
+-----------------------------------------------------------------------
+
+     GEL June 01, 1998 15:20:30    JRT
+
+     Correct bug where commitment information was not gathered for
+     normalized COMMITMENT$MASTER.
+
+-----------------------------------------------------------------------
+
+     CJO February 19, 1999 16:00:04    PRO
+
+     General source file cleanup; assumes this version is
+     now Y2K compliant and has no need to consider 2 vs 4
+     digit years.  The edits include :
+       Delete/modify code assuming NEWLAB, NEWC$M and NEWL$D
+       are all true.
+       Delete LOGICAL Y2K and associated tests and date
+       conversions.
+       Delete comments having /VAX/PRIME/POSIX notes
+
+-----------------------------------------------------------------------
+
+     RDS December 17, 1999 17:13:20    SCO-0152
+
+     Implement a custom commitment validation entry point.
+
+-----------------------------------------------------------------------
+
+     DBS January 19, 2000 09:25:00    HBZ
+
+     move IF (AMOUNT .LT. 0D0) GOTO 9000 statement down to allow some
+     validation to occur on negative amounts.
+
+-----------------------------------------------------------------------
+
+     DBS January 28, 2000 09:20:25    PT
+
+     Initialize MESS between uses
+
+-----------------------------------------------------------------------
+
+     DBS June 15, 2000 17:00:37    TIC0147
+
+     Added validation attempt for a situation when MULTIPLE VENDORS are
+     now valid, but were not at time of original commitment (No vendor
+     Summary record in COMMITMENT$MASTER).
+
+-----------------------------------------------------------------------
+
+     DBS June 16, 2000 10:46:23    TIC0147
+
+     When searching for any vendor to match, quit loop
+     when TYPE (KEY(3)) changes.
+
+-----------------------------------------------------------------------
+
+     RDS June 21, 2000 09:56:26    TIC-0146
+
+     Changes to support the addition of "ACCOUNT" (debit job account)
+     to the COMMITMENT$MASTER file.
+
+-----------------------------------------------------------------------
+
+     DBS August 16, 2000 11:57:39    TIC
+
+     when MULTIPLE vendors are allowed, but original commitment was
+     created with multiple vendors not allowed (different summary rec)
+     use KEY 1 when searching thru COMMITMENT$MASTER looking for existing
+     commitment, was using primary key and taking a long time
+
+-----------------------------------------------------------------------
+
+     DBS August 17, 2000 16:39:09    TIC0147
+
+     Added warning when vendor changes.
+
+     Changed configuration parameter from system parameter ....
+     MULTIPLE VENDOR COM ID: dfd     to user parameter....
+
+     MULTIPLE VENDOR PO              w/ no data required
+
+-----------------------------------------------------------------------
+
+     DBS August 21, 2000 14:17:49    TIC
+
+     Only warn of different vendor when in Online, was causing fatal error
+     in a BATCH CLOSE.
+
+-----------------------------------------------------------------------
+
+     DBS September 06, 2000 17:14:39    TIC0147
+
+     when warning of a multiple vendor situation, then look for actual commitment,
+     was reporting previous commitment, not present commitment
+
+-----------------------------------------------------------------------
+
+     GMT March 14, 2002 10:02:10    TIC-0165
+
+     Upgrade to work correctly with scenario where multiple vendors
+     have been associated with a commitment and the amount of a billing
+     is negative as in posting a credit memo.
+
+     (see configuration parameter "MULTIPLE VENDOR PO".)
+
+-----------------------------------------------------------------------
+
+     RDS August 30, 2002 16:16:43    TIC
+
+     When checking for the commitment under a different vendor we need
+     to pay attention to looking only at records with the same type.
+     ie SC = SC, PO = PO, C = C, LE = LE
+
+-----------------------------------------------------------------------
+
+     DBS October 04, 2002 16:25:36    TIC
+
+     Modifed to not exit before checking for a transferred commitment.
+     The routine will now warn of a transfered commitment with no config
+     params in place.
+
+-----------------------------------------------------------------------
+
+     DBS March 11, 2003 08:46:47    TIC
+
+     Modified unbilled commitment amount validity check from
+     $1.00 to 0.01, to allow commitments under $1.00 to be moved.
+
+-----------------------------------------------------------------------
+
+     DBS April 16, 2003 16:27:16    TIC
+
+     When checking for sufficient commitment to transfer,
+     account for any overage amount (AMTOVR).
+
+-----------------------------------------------------------------------
+
+     DBS October 07, 2003 17:01:17    TIC
+
+     Incorporated TIC's "move commitment" code changes into dev version.
+
+-----------------------------------------------------------------------
+
+     RDS June 27, 2006 10:12:38    PT6-0001
+
+     Change made by GMT to avoid multiple vendor code that does not
+     work.
+
+-----------------------------------------------------------------------
+
+     GEL July 19, 2007 14:48:32    ACC-0177
+
+     In the case of a MULTIPLE VENDOR PO do not validate down to
+     the Job/Phase/Activity.  Doing so only gives you part of the
+     story and you need the whole story.  Validate to the Job/Phase
+     in the case of a MULTIPLE VENDOR PO.
+
+     Modify to allow a single vendor to reference the same MULTIPLE
+     VENDOR PO more than once.
+
+-----------------------------------------------------------------------
+
+     GEL May 02, 2013 13:13:00    ACC-0267
+
+     Add Contract ID and Amount to entry point of custom commitment
+     validation routine, CSCVAL.  References ticket: 44
+
+*/
