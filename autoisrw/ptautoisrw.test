@@ -1,0 +1,85 @@
+#!/bin/bash
+
+
+cd $PT_SITE_PATH/auto
+if [ $? -ne 0 ]
+then
+    echo "Could not cd to $PT_SITE_PATH/auto"
+fi
+
+DFD_TABLE=$PT_PROFILE/pt-system/dfd.table
+LOG_DFDS=$PT_SITE_PATH/auto/dfds.to.isrewrite
+USER=`whoami`
+
+SPECIALS=$PT_SITE_PATH/auto/isrw.specials
+`./is_odd_week.pl`        # Production Weekly running
+RET=$?
+echo "is_odd_week.pl returned: $RET"
+
+# Get operating system name.
+
+PTOPSYS=`uname -s`
+
+# Execute this loop for each entry in the /auto/dfd.table
+
+for LOG_DFD in `cat $LOG_DFDS`
+do
+
+    DFD_PATH=$(awk "\$1 == \"$LOG_DFD\" { print \$2 }" $DFD_TABLE)
+    REV=$(awk "\$1 == \"$LOG_DFD\" { print \$3 }" $DFD_TABLE)
+
+    if [ "$DFD_PATH" = "" ]
+        then
+        echo "\n-------->$LOG_DFD is not in the DFD table<--------\n"
+        continue
+    fi
+
+    if [ "$REV" != "$PT_REV" ]
+        then
+        echo "\n-------->$LOG_DFD is using \"$REV\" of Profitool<--------\n"
+        continue
+    fi
+
+    cd $DFD_PATH
+
+    echo "\nProcessing: $DFD_PATH\n"
+
+
+    if [ $RET -eq 1 ] ; then
+        # Loop thru files in the SPECIALS file and rewrite
+        CMD="cat $SPECIALS"
+    else
+        # Loop thru files in the DFD and rewrite the ones that we can.
+        CMD="find . -name \*.idx -newer isrewrite_completed -print | awk -F .idx '{print \$1}'"
+    fi
+    echo "debug: CMD: $CMD"
+
+    NO_FILES=1
+    for FILES in $(eval "$CMD")
+    do
+        echo "debug: FILES: $FILES"
+
+        wanted=1
+        if [ $RET -eq 0 ] ; then
+            # Exclude files in SPECIALS
+            for EXCLUDE in `cat $SPECIALS` ; do
+                echo "debug: is FILES: $FILES = EXCLUDE: $EXCLUDE"
+                if [[ "$FILES" = "$EXCLUDE" ]] ; then
+                    wanted=0
+                fi
+            done
+            echo "debug: wanted: $wanted"
+        fi
+        if [ "$wanted" = "0" ] ; then
+            echo "     -------> Excluded $FILES <--------"
+            continue
+        fi
+
+        echo "  Would rewrite $FILES here"
+
+        NO_FILES=0
+
+    done
+
+done     # for LOG_DFD in `cat $LOG_DFDS`
+exit 0

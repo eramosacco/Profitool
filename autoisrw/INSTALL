@@ -1,0 +1,44 @@
+ 1. (First time only), backup the existing (Profitool) ptautoisrw script
+
+    $ cp /pti/pt.profile/pt-shell/ptautoisrw /pti/pt.profile/pt-shell/ptautoisrw.YYMMDD
+
+ 2. (First time only), install Perl 5.22 as the cmissa user:
+
+    $ curl -L http://install.perlbrew.pl | bash
+    $ source ~/perl5/perlbrew/etc/bashrc
+    $ perlbrew install perl-5.22.0
+
+ 3. Test that the new perl is installed
+
+    $ perl -v 
+
+    The output should include: "This is perl 5, version 22, subversion 0 (v5.22.0)"
+
+ 4. Use that perl's cpan program to install the DateTime module
+
+    $ cpan DateTime
+
+ 5. Run the Makefile
+
+    $ make
+
+ 6. Test the is_odd_week.pl script ($? should show 0 or 1, depending on the date)
+
+    $ /pti/pt.site.6.1.18/auto/is_odd_week.pl
+    $ echo $?
+    1
+
+    You can check here to see whether the current week number is odd or even:
+
+        http://www.timeanddate.com/date/weeknumber.html
+
+ 7. Ensure the "MPACK" entry in the SA MONITOR CONFIG screen is set to the correct day of week
+
+    See "README.SA_MONITOR_CONFIG"
+
+ 8. Create the "specials" file
+
+	Add the files you want to be processed every other week, ie:
+		labor_d
+		job_d
+	to: /pti/pt.site.6.1.18/auto/isrw.specials

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JDK160"/>
+	<classpathentry exported="true" kind="lib" path="reqired-libs/jars/ClassicModels.jar"/>
+	<classpathentry exported="true" kind="lib" path="reqired-libs/jars/derby.jar"/>
+	<classpathentry exported="true" kind="lib" path="reqired-libs/jars/essd11.jar"/>
+	<classpathentry exported="true" kind="lib" path="reqired-libs/jars/FinancialStatement.jar"/>
+	<classpathentry exported="true" kind="lib" path="reqired-libs/jars/Grocery.jar"/>
+	<classpathentry exported="true" kind="lib" path="reqired-libs/jars/idapi.jar"/>
+	<classpathentry exported="true" kind="lib" path="reqired-libs/jars/iText.jar"/>
+	<classpathentry exported="true" kind="lib" path="reqired-libs/jars/mysql-connector-java-5.1.22-bin.jar"/>
+	<classpathentry exported="true" kind="lib" path="reqired-libs/jars/N_db2.jar"/>
+	<classpathentry exported="true" kind="lib" path="reqired-libs/jars/N_informix.jar"/>
+	<classpathentry exported="true" kind="lib" path="reqired-libs/jars/N_oracle.jar"/>
+	<classpathentry exported="true" kind="lib" path="reqired-libs/jars/N_pool.jar"/>
+	<classpathentry exported="true" kind="lib" path="reqired-libs/jars/N_sqlserver.jar"/>
+	<classpathentry exported="true" kind="lib" path="reqired-libs/jars/N_sybase.jar"/>
+	<classpathentry exported="true" kind="lib" path="reqired-libs/jars/org.eclipse.core.runtime_3.7.0.v20110110.jar"/>
+	<classpathentry exported="true" kind="lib" path="reqired-libs/jars/org.eclipse.datatools.connectivity.oda_3.3.3.v201110130935.jar"/>
+	<classpathentry exported="true" kind="lib" path="reqired-libs/jars/org.eclipse.datatools.connectivity.oda.design.ui_3.2.6.v201208020635.jar"/>
+	<classpathentry exported="true" kind="lib" path="reqired-libs/jars/org.eclipse.equinox.registry_3.5.101.R37x_v20110810-1611.jar"/>
+	<classpathentry exported="true" kind="lib" path="reqired-libs/jars/org.eclipse.osgi_3.7.2.v20120110-1415.jar"/>
+	<classpathentry exported="true" kind="lib" path="reqired-libs/jars/Securities.jar"/>
+	<classpathentry exported="true" kind="lib" path="reqired-libs/jars/sfdata.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

@@ -1,0 +1,25 @@
+Control when the script runs via the "MPACK" entry in the SA MONTOR CONFIG screen:
+
+  SA  MONITOR CONFIG *** Profitool 6.1.18  ***elr Glen-pt20 US ACCO 09/20 17:25
+                     Maintain Monitor Configuration Files
+
+
+  Monitor Currently Invoked:  12
+  MONITOR Configuration # 12
+ ==============================================================================
+                               Start/Stop      Window      Days-Of-Week
+                                   hh  mm     hh  mm  M  T  W  T  F  S  S
+  Nightly Phantom Name MPACK        14 0       14 15  N  N  N  N  N  Y  N
+
+                       hh  mm          hh  mm           hh  mm          hh  mm
+  Start Windows> Monday         Tuesday        Wednesday        Thursday
+         By Day> Friday        Saturday           Sunday
+
+      Time-Of-Day
+     From    Thru       Days-Of-Week            Priority    Queue   Us  Rpt  Sam
+    hh mm   hh mm    M   T   W   T   F   S   S  From Thru From Thru Tot Tot  DFD
+
+   4__ 30_ 22_ 0__  Y__ Y__ Y__ Y__ Y__ Y__ Y__  4__  7__  B__ C__ 100__ 4__ 4__
+   4__ 30_ 22_ 0__  Y__ Y__ Y__ Y__ Y__ Y__ Y__  4__  7__  B__ C__ 100__ 4__ 4__
+   4__ 30_ 22_ 0__  Y__ Y__ Y__ Y__ N__ N__ N__  4__  7__  B__ P__ 100__ 4__ 4__
+   4__ 30_ 22_ 0__  Y__ Y__ Y__ Y__ Y__ Y__ Y__  4__  7__  D__ D__ 100__ 4__ 4__

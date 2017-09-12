@@ -1,0 +1,32 @@
+#! /bin/ksh
+ERRF=O_000 ; OUTF=OUT000
+date > $ERRF
+$PT_PATH/prog/r-sa-report  > $OUTF 2>>$ERRF <<END
+SAFILE LOAD
+CONT\$REG                    REG1 /* Target file
+cont-reg-reg1-upload             /* Format name
+cont-reg-reg1.txt
+/home/billing/archive
+                                 /* Replace
+                                 /* Update
+X                                /* Skip
+X                                /* Add
+                                 /* Delete
+OUT000
+PRIORITY                        : 5
+FORM                            : WH9501
+TARGET FILE NAME                : CONT\$REG
+TARGET RECORD TYPE              : REG1
+TARGET FORMAT NAME              : cont-reg-reg1-upload
+PATHNAME                        : cont-reg-reg1.txt
+COPY TO DIR                     : /home/billing/archive
+SKIP                            : X
+ADD                             : X
+SAVE THIS SCREEN                : Y
+ 
+END
+date >> $ERRF
+$PT_SITE_PATH/shell/ptfilter.pl $OUTF  "SAFILE LOAD      " "SAFILE LOAD CONT$REG REG1                "
+chmod 666 $ERRF
+chmod 666 $OUTF
+exit 0

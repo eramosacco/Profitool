@@ -1,0 +1,299 @@
+#!/bin/bash
+#set -vx
+
+# name:         auto.isrw
+# version:      $Revision: 1.1  $
+# date:         $Date: 1996/02/20 $
+# author:       Joey Aguilera (System Administrator - original version)
+# function:
+#
+#    usage:     Started by the auto-monitor script
+#
+# Modification History:
+# Revision 2.0 2015/08/05 Unisolve
+# Added bi-weekly control thru SPECIALS file
+
+# Revision 1.5 2000/08/28   10:20 bts
+# Added PTOPSYS selections for Linux
+#
+# Revision 1.4 1998/08/27   08:43 gbw
+# I left out a pipe in yesterdays change. Fixed now.
+#
+# Revision 1.3 1998/08/26   12:31 gbw
+# Added the exclusion of localserver to the list of -v's to not worry about
+# for the second check, after the "last file".
+#
+# Revision 1.2 1998/08/24   15:06 gbw
+# Added the exclusion of localserver to the list of -v's to not worry about.
+#
+# Revision 1.1 1996/03/20   11:00 jaa
+# Initial revision
+#
+#
+# Note:- scripts called from this should reside in $PT_SITE_PATH/auto
+
+PROG="ptautoisrw"
+
+echo "\n=====Running $PROG=====\n"
+
+DFD_TABLE=$PT_PROFILE/pt-system/dfd.table
+LOG_DFDS=$PT_SITE_PATH/auto/dfds.to.isrewrite
+USER=`whoami`
+
+SPECIALS=$PT_SITE_PATH/auto/isrw.specials
+`./is_odd_week.pl`        # Production Weekly running
+##`./is_odd_day.pl`           # Testing - Daily running
+RET=$?
+# debug
+echo "==========" >> $PT_SITE_PATH/auto/isrewrite_success.log
+echo "RET: $RET" >> $PT_SITE_PATH/auto/isrewrite_success.log
+
+# Get operating system name.
+
+PTOPSYS=`uname -s`
+
+# Check to see if cmissa or cmismn is running this.
+
+if [[ $USER != cmissa && $USER != cmismn ]]
+  then
+  echo "\nThis program can only be run by cmissa or cmismn!\n"
+  exit 1
+fi
+
+# Wait (up to 2 hours) for no pt users for the revision of
+# interest (monitor excluded)
+
+for LOOP in 1 2 3 4 5 6 7 8 9 10 11 12
+  do
+  ps -ef | \
+  grep "$PT_PATH/prog/" | \
+  grep -v grep | \
+  grep -v monitor | \
+  grep -v export | \
+  grep -v localserver
+  GREP_IRC=$?
+  if [ $GREP_IRC -eq 0 ]
+    then
+    echo "--------------------------------------------------"
+    sleep 600
+    else break
+  fi
+  done
+
+# If there is still 1 or more users, Give up
+
+if [ $GREP_IRC -eq 0 ]
+    then
+    echo "\nCannot run isrewrite as there are processes still executing...\n"
+
+    # Unhang CMIS online users
+    rm -f $PT_SITE_PATH/system/hang_
+    rm -f $PT_SITE_PATH/system/hang_.monitor
+    rm -f $PT_SITE_PATH/file/.nopt
+		
+    # here we call the `email_failure` process
+    ./send_error_email.pl
+
+  exit 1
+fi
+
+
+# Hang cmis online users
+
+# echo "\n$PROG is in progress or has failed...\n" >> $PT_SITE_PATH/system/hang_
+echo "\nProfitool file maintenance is currently running. System will be available at 3:00 PM.\n" >> $PT_SITE_PATH/system/hang_
+touch -f $PT_SITE_PATH/file/.nopt
+
+# Execute this loop for each entry in the /auto/dfd.table
+
+for LOG_DFD in `cat $LOG_DFDS`
+  do
+
+    DFD_PATH=$(awk "\$1 == \"$LOG_DFD\" { print \$2 }" $DFD_TABLE)
+    REV=$(awk "\$1 == \"$LOG_DFD\" { print \$3 }" $DFD_TABLE)
+
+    if [ "$DFD_PATH" = "" ]
+      then
+      echo "\n-------->$LOG_DFD is not in the DFD table<--------\n"
+      continue
+    fi
+
+    if [ "$REV" != "$PT_REV" ]
+      then
+      echo "\n-------->$LOG_DFD is using \"$REV\" of Profitool<--------\n"
+      continue
+    fi
+
+    cd $DFD_PATH
+
+    echo "\nProcessing: $DFD_PATH\n"
+
+#****************************************************************************
+#
+# Update the statistics for the database.
+#
+#****************************************************************************
+
+    pt updt_stats $LOG_DFD
+
+
+    if [ $? -ne 0 ]
+    then
+       echo "**** Error executing updt_stats ****"
+       exit 1
+    fi
+
+
+    # Remove any isrewrite junk from previous aborted run
+
+    rm  -f newfile.dat newfile.idx
+
+    # Hang the DFD
+
+    #echo "\n$PROG is in progress or has failed...\n" >> hang_
+    echo "\nProfitool file maintenance is currently running.\n" >> hang_
+
+	#echo "debug: RET: $RET"
+    if [ $RET -eq 1 ] ; then
+        # Loop thru files in the SPECIALS file and rewrite
+        CMD="cat $SPECIALS"
+    else
+        # Loop thru files in the DFD and rewrite the ones that we can.
+        CMD="find . -name \*.idx -newer isrewrite_completed -print | awk -F .idx '{print \$1}'"
+## this for limited testing
+##      CMD="find . -name \"d*.idx\" -print | awk -F '.idx' '{print \$1}'"
+    fi
+
+
+	#echo "debug: CMD: $CMD"
+    # debug
+    echo "debug: CMD: $CMD" >> $PT_SITE_PATH/auto/isrewrite_success.log
+
+	NO_FILES=1
+    for FILES in $(eval "$CMD")
+      do
+		#echo "debug: FILES: $FILES"
+        # debug
+        echo "debug: FILES: $FILES" >> $PT_SITE_PATH/auto/isrewrite_success.log
+
+      # Do not attempt to rewrite symbolic links or files with
+      # names that are longer than 12 characters.  (The C-ISAM limit)
+
+      if [[ -h $FILES.idx || ${#FILES} -gt 12 ]]
+        then
+    	echo "     -------> Skipped $FILES <--------"
+    	continue
+      fi
+
+      wanted=1
+      if [ $RET -eq 0 ] ; then
+	# Exclude files in SPECIALS
+	for EXCLUDE in `cat $SPECIALS` ; do
+		#echo "debug: EXCLUDE: $EXCLUDE"
+        # debug
+        echo "debug: FILES: $FILES EXCLUDE: $EXCLUDE" >> $PT_SITE_PATH/auto/isrewrite_success.log
+		if [[ "$FILES" = "$EXCLUDE" ]] ; then
+			wanted=0
+		fi
+	done
+	#echo "debug: wanted: $wanted"
+        # debug
+        echo "debug: wanted: $wanted" >> $PT_SITE_PATH/auto/isrewrite_success.log
+      fi
+      if [ "$wanted" = "0" ] ; then
+	echo "     -------> Excluded $FILES <--------"
+	continue
+      fi
+
+      # Get size of the .idx + .dat files in kbytes.
+
+      SIZEIDX=`ls -l $FILES.idx | awk '{ print $5 }'`
+      SIZEDAT=`ls -l $FILES.dat | awk '{ print $5 }'`
+      SIZEBOTH=`expr $SIZEIDX + $SIZEDAT`
+      SIZEF=`expr $SIZEBOTH / 1024 + 1`
+
+      # Checks space available on file system.
+
+      case "$PTOPSYS" in
+
+      	HP-UX) FSAVAIL=`bdf . |tail -1 |awk '{print $4}'`
+        ;;
+      	AIX) FSAVAIL=`df . |tail -1 |awk '{print $3}'`
+        ;;
+      	Linux) FSAVAIL=`df -k . |tail -1 |awk '{print $3}'`
+        ;;
+      esac
+
+      if [ $SIZEF -gt $FSAVAIL ]
+        then
+        echo "\nNot enough space available to rewrite $FILES\n"
+
+      else
+
+    # Make sure nobody has started a program since the last file
+
+        ps -ef | \
+	grep "$PT_PATH/prog/" | \
+	grep -v grep | \
+  	grep -v export | \
+    	grep -v monitor | \
+    	grep -v localserver
+
+    	if [ $? -eq 0 ]
+      		then
+      		echo "**** Above user was encountered, I give up ****"
+ 	  		if [ "$NO_FILES" = "1" ] ; then
+				# Unhang CMIS online users
+
+				rm -f hang_
+				rm -f $PT_SITE_PATH/system/hang_
+				rm -f $PT_SITE_PATH/system/hang_.monitor
+				rm -f $PT_SITE_PATH/file/.nopt
+		
+				# here we call the `email_failure` process
+    				./send_error_email.pl
+	  		fi
+		
+			exit 1
+    	fi
+
+    	echo `date`
+    	echo "  rewriting $FILES"
+
+        # isrewrite this file
+
+        /usr/local/bin/dpack $FILES >| isrewrite.out
+#        pt isrewrite $FILES >| isrewrite.out
+
+        if [ $? != 0 ]
+			then
+			echo "\nError isrewrite aborted.\n"
+			exit 1
+        fi
+
+        rm -f $FILES.*.isrw.dat $FILES.*.isrw.idx
+	fi
+
+	NO_FILES=0
+
+	done
+
+	rm -f hang_
+
+	echo `date` isrewrite successful for $LOG_DFD >> $PT_SITE_PATH/auto/isrewrite_success.log
+
+	if [ $RET -eq 0 ] ; then
+		touch -f isrewrite_completed
+	fi
+done
+
+# Unhang CMIS online users
+
+rm -f $PT_SITE_PATH/system/hang_
+rm -f $PT_SITE_PATH/system/hang_.monitor
+rm -f $PT_SITE_PATH/file/.nopt
+
+echo "\n=====End of $PROG=====\n"
+
+exit 0
+
